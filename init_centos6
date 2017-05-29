@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# chkconfig: 2345 85 15
+# description: foo
+# 
+# 一般的な daemon 起動スクリプト
+PROGRAM_PATH='/usr/local/foo/foo_daemon'
+PROGRAM_NAME='foo'
+LOCK_FILE='/var/lock/subsys/foo'
+PID_FILE='/var/run/foo.pid'
+
+start() {
+    echo -n "Starting foo: "
+    if [ -f $LOCK_FILE ]; then
+        echo $LOCK_FILE' is already exist'
+    else
+        touch $LOCK_FILE
+        PID=`$PROGRAM_PATH`
+        echo $PID > $PID_FILE
+        echo 'pid = '$PID
+    fi
+    return 0 
+}   
+
+stop() {
+    echo "Shutting down foo: "
+    rm -f $LOCK_FILE
+    PID=`cat $PID_FILE`
+    kill $PID
+    return $? 
+}
+
+status() {
+    if [ -f $LOCK_FILE ]; then
+        PID=`cat $PID_FILE`
+        echo 'foo alive / pid = '$PID
+    else
+        echo 'foo is not running'
+    fi
+    return 0 
+}
+
+case "$1" in
+    start)
+        start
+    ;;
+    stop)
+        stop
+    ;;
+    status)
+        status
+    ;;
+    restart)
+        stop
+        start
+    ;;
+    *)
+        echo "Usage: <servicename> {start|stop|status|reload|restart[|probe]"
+        exit 1
+    ;;
+esac
+exit $?
+
